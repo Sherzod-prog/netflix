@@ -1,5 +1,5 @@
 import { createAccounSchema } from "@/lib/validation";
-import React from "react";
+import React, { Dispatch, SetStateAction } from "react";
 import * as z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -15,8 +15,18 @@ import {
 import { Input } from "../ui/input";
 import PinInput from "react-pin-input";
 import { Button } from "../ui/button";
+import axios from "axios";
+import { AccountProps, AccountResponse } from "@/types";
+import { toast } from "../ui/use-toast";
 
-const CreateAccountForm = () => {
+interface Props {
+  uid: string;
+  setOpen: Dispatch<SetStateAction<boolean>>;
+  setAccounts: Dispatch<SetStateAction<AccountProps[]>>;
+  accounts: AccountProps[];
+}
+
+const CreateAccountForm = ({ uid, setOpen, setAccounts, accounts }: Props) => {
   const form = useForm<z.infer<typeof createAccounSchema>>({
     resolver: zodResolver(createAccounSchema),
     defaultValues: { name: "", pin: "" },
@@ -24,7 +34,33 @@ const CreateAccountForm = () => {
 
   const { isSubmitting } = form.formState;
   async function onSubmit(values: z.infer<typeof createAccounSchema>) {
-    console.log(values);
+    try {
+      const { data } = await axios.post<AccountResponse>("/api/account", {
+        ...values,
+        uid,
+      });
+      if (data.success) {
+        setOpen(false);
+        form.reset();
+        setAccounts([...accounts, data.data as AccountProps]);
+        return toast({
+          title: "Account creates successfully",
+          description: "Your account has been created successfully",
+        });
+      } else {
+        return toast({
+          title: "Error 1",
+          description: data.message,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      return toast({
+        title: "Error create account",
+        description: "An error accurred while creating your account",
+        variant: "destructive",
+      });
+    }
   }
 
   return (
