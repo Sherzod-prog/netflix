@@ -4,6 +4,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useGlobalContext } from "@/context";
 import { getMovieDetails } from "@/lib/api";
 import { MovieDetailsProps } from "@/types";
+import ReactStars from "react-stars";
 
 import React, { useEffect, useState } from "react";
 
@@ -28,7 +29,7 @@ const MoviePopup = () => {
       }
     };
     getMovie();
-  }, [movie]);
+  }, [movie, open]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -45,6 +46,28 @@ const MoviePopup = () => {
           <p className={"text-shadow-md text-sm text-slate-500"}>
             {movie?.overview}
           </p>
+          <div className={"flex flex-row flex-wrap gap-2 items-center"}>
+            <ReactStars
+              value={movieDetails?.vote_average}
+              count={10}
+              edit={false}
+            />
+            <p className={"text-[#e5b109]"}>{movieDetails?.vote_count}</p>
+            {/* <div className={"text-green-400 font-semibold flex gap-2"}> */}
+            <span className={"text-green-400 font-semibold flex gap-2"}>
+              {movieDetails?.release_date
+                ? movieDetails.release_date.split("-")
+                : "2023"}
+            </span>
+            <div
+              className={
+                "inline-flex border-2 text-green-400 font-semibold border-white/40 rounded px-2"
+              }
+            >
+              HD
+            </div>
+            {/* </div> */}
+          </div>
         </div>
         {movie?.title}
       </DialogContent>
