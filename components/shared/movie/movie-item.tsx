@@ -4,6 +4,7 @@ import { FavouriteProps, MovieProps } from "@/types";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { ChevronDown, Loader2, MinusIcon, PlusIcon } from "lucide-react";
+import { useGlobalContext } from "@/context";
 
 interface Props {
   movie: MovieProps;
@@ -13,6 +14,12 @@ interface Props {
 
 const MovieItem = ({ movie, favouriteId = "", setFavourites }: Props) => {
   const [isLoading, setIsLoading] = useState(false);
+  const { setOpen, setMovie } = useGlobalContext();
+
+  const onHandlerPopup = () => {
+    setMovie(movie);
+    setOpen(true);
+  };
 
   return (
     <motion.div>
@@ -28,6 +35,7 @@ const MovieItem = ({ movie, favouriteId = "", setFavourites }: Props) => {
           alt="Media"
           fill
           className={"rounded sm object-cover md:rounded hover:rounded-sm"}
+          onClick={onHandlerPopup}
         />
         <div className={"space-x-3 hidden absolute p-2 bottom-0 buttonWrapper"}>
           <button
@@ -53,7 +61,7 @@ const MovieItem = ({ movie, favouriteId = "", setFavourites }: Props) => {
             <ChevronDown
               color="#fff"
               className="h-7 w-7"
-              //   onClick={onHandlerPopup}
+              onClick={onHandlerPopup}
             />
           </button>
         </div>

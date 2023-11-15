@@ -14,12 +14,13 @@ import { AiOutlineSearch } from "react-icons/ai";
 import SearchBar from "./search-bar";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
+import MoviePopup from "../movie/movie-popup";
 
 const Navbar = () => {
   const [showSearchBar, setShowSearchBar] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
-  const { account, setAccount } = useGlobalContext();
+  const { account, setAccount, setPageLoader } = useGlobalContext();
   const router = useRouter();
 
   useEffect(() => {
@@ -65,7 +66,7 @@ const Navbar = () => {
               <li
                 onClick={() => {
                   router.push(item.path);
-                  // setPageLoader(true);
+                  setPageLoader(true);
                 }}
                 key={item.path}
                 className={
@@ -78,7 +79,7 @@ const Navbar = () => {
           </ul>
         </div>
 
-        {/* <MoviePopup /> */}
+        <MoviePopup />
 
         <div className={"font-light flex items-center space-x-4 text-sm"}>
           {showSearchBar ? (

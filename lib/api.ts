@@ -1,5 +1,4 @@
 import axios from "axios";
-import { type } from "os";
 
 const API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY;
 const BASE_URL = process.env.NEXT_PUBLIC_TMDB_URL;
@@ -32,6 +31,27 @@ export const getPopularMovies = async (type: string) => {
       `${BASE_URL}/${type}/popular?api_key=${API_KEY}&language=en-US`
     );
     return data && data.results;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const getMoviesByGenre = async (type: string, id: number) => {
+  try {
+    const { data } = await axios.get(
+      `${BASE_URL}/discover/${type}?api_key=${API_KEY}&language=en-US&with_genres=${id}`
+    );
+    return data && data.results;
+  } catch (error) {
+    console.log(error);
+  }
+};
+export const getMovieDetails = async (type?: string, id?: number) => {
+  try {
+    const { data } = await axios.get(
+      `${BASE_URL}/${type}/${id}?api_key=${API_KEY}&language=en-US&append_to_response=videos`
+    );
+    return data;
   } catch (error) {
     console.log(error);
   }
