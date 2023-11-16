@@ -11,12 +11,13 @@ import {
   getTrandingMovies,
   getTopratedMovies,
   getPopularMovies,
+  getFavourites,
 } from "@/lib/api";
 import { MovieDataProps, MovieProps } from "@/types";
 
 const Page = () => {
   const { account, pageLoader, setPageLoader } = useGlobalContext();
-  const { data: session } = useSession();
+  const { data: session }: any = useSession();
   const [moviesData, setMoviesData] = useState<MovieDataProps[]>([]);
 
   useEffect(() => {
@@ -36,6 +37,8 @@ const Page = () => {
           getTrandingMovies("movie"),
           getTopratedMovies("movie"),
           getPopularMovies("movie"),
+
+          getFavourites(session?.user?.id, session?._id),
         ]);
         const tvShows: MovieDataProps[] = [
           { title: "Trending TV Shows", data: trendingTv },
@@ -71,7 +74,7 @@ const Page = () => {
       }
     };
     getAllMovies();
-  }, []);
+  }, [session]);
 
   if (session === null) return <Login />;
   if (account === null) return <ManageAccount />;

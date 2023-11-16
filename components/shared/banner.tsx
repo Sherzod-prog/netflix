@@ -1,5 +1,6 @@
 "use client";
 
+import { useGlobalContext } from "@/context";
 import { MovieProps } from "@/types";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
@@ -13,10 +14,17 @@ interface Props {
 const Banner = ({ movies }: Props) => {
   const [randomMovie, setRandamMovie] = useState<MovieProps | null>(null);
 
+  const { setOpen, setMovie, account } = useGlobalContext();
+
   useEffect(() => {
     const movie = movies[Math.floor(Math.random() * movies.length)];
     setRandamMovie(movie);
   }, []);
+
+  const onHandlerPopup = () => {
+    setMovie(randomMovie);
+    setOpen(true);
+  };
 
   return (
     <div
@@ -56,14 +64,14 @@ const Banner = ({ movies }: Props) => {
           className={
             "cursor-pointer flex items-center gap-x-2 rounded px-5 py-1.5 text-sm font-semibold transition hover:opacity-75 md:py-2.5 md:px-8 md:text-xl bg-white text-black"
           }
-          // onClick={onHandlerPopup}
+          onClick={onHandlerPopup}
         >
           <AiFillPlayCircle className="h-4 w-4 text-black md:h-7 md:w-7 cursor-pointer" />
           Play
         </button>
         <button
           className="cursor-pointer flex items-center gap-x-2 rounded px-5 py-1.5 text-sm font-semibold transition hover:opacity-75 md:py-2.5 md:px-8 md:text-xl bg-[gray]/70"
-          // onClick={onHandlerPopup}
+          onClick={onHandlerPopup}
         >
           <IoMdInformationCircleOutline className="h-5 w-5  md:h-8 md:w-8 cursor-pointer" />
           More Info

@@ -1,10 +1,12 @@
 "use client";
 import React, { Dispatch, SetStateAction, useState } from "react";
 import { FavouriteProps, MovieProps } from "@/types";
-import { motion } from "framer-motion";
-import Image from "next/image";
 import { ChevronDown, Loader2, MinusIcon, PlusIcon } from "lucide-react";
 import { useGlobalContext } from "@/context";
+import CustomImage from "../custom-image";
+import { useSession } from "next-auth/react";
+import axios from "axios";
+import { toast } from "@/components/ui/use-toast";
 
 interface Props {
   movie: MovieProps;
@@ -14,59 +16,115 @@ interface Props {
 
 const MovieItem = ({ movie, favouriteId = "", setFavourites }: Props) => {
   const [isLoading, setIsLoading] = useState(false);
-  const { setOpen, setMovie } = useGlobalContext();
+  const { setOpen, setMovie, account } = useGlobalContext();
+  const { data: session }: any = useSession();
 
   const onHandlerPopup = () => {
     setMovie(movie);
     setOpen(true);
   };
 
-  return (
-    <motion.div>
-      <div
-        className={
-          "relative cardWrapper h-28 min-w-[180px] cursor-pointer md:h-36 md:min-w-[260px] transform transition duration-500 hover:scale-110 hover:z-[999]"
+  const onAdd = async () => {
+    try {
+      const { data } = await axios.post("/api/favourite", {
+        uid: session?.user?.uid,
+        account: account?._id,
+        backdrop_path: movie?.backdrop_path,
+        poster_path: movie?.poster_path,
+        movieId: movie?.id,
+        type: movie?.type,
+        title: movie?.title || movie?.name,
+        overview: movie?.overview,
+      });
+      if (data?.success) {
+        return toast({
+          title: "Success",
+          description: "Movie added to you favourite list",
+        });
+      } else {
+        return toast({
+          title: "Error",
+          description: data.message,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      return toast({
+        title: "Error",
+        description: "Something went wrong",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  const onRemove = async () => {
+    try {
+      setIsLoading(true);
+      const { data } = await axios.delete(`/api/favourite?id=${favouriteId}`);
+      if (data?.success) {
+        if (setFavourites) {
+          setFavourites((prev: FavouriteProps[]) =>
+            prev.filter((item: FavouriteProps) => item._id !== favouriteId)
+          );
         }
-      >
-        <Image
-          src={`${process.env.NEXT_PUBLIC_TMDB_IMAGE_BASE_URL}${
-            movie?.backdrop_path || movie?.poster_path
-          }`}
-          alt="Media"
-          fill
-          className={"rounded sm object-cover md:rounded hover:rounded-sm"}
-          onClick={onHandlerPopup}
-        />
-        <div className={"space-x-3 hidden absolute p-2 bottom-0 buttonWrapper"}>
-          <button
-            className={`cursor-pointer border flex p-2 items-center gap-x-2 rounded-full  text-sm font-semibold transition hover:opacity-90 border-white bg-black opacity-75 text-black`}
-          >
-            {isLoading ? (
-              <Loader2 className={"h-7 w-7 animate-spin text-red-600"} />
-            ) : favouriteId?.length ? (
-              <MinusIcon
-                color="#ffffff"
-                className="h-7 w-7"
-                //   onClick={onRemove}
-              />
-            ) : (
-              <PlusIcon
-                color="#ffffff"
-                className="h-7 w-7"
-                //   onClick={onAdd}
-              />
-            )}
-          </button>
-          <button className="cursor-pointer p-2 border flex items-center gap-x-2 rounded-full  text-sm font-semibold transition hover:opacity-90  border-white  bg-black opacity-75 ">
-            <ChevronDown
-              color="#fff"
-              className="h-7 w-7"
-              onClick={onHandlerPopup}
-            />
-          </button>
-        </div>
+        return toast({
+          title: "Success",
+          description: "Movie removed from your favourite list",
+        });
+      } else {
+        return toast({
+          title: "Error",
+          description: data.message,
+          variant: "destructive",
+        });
+      }
+    } catch (e) {
+      return toast({
+        title: "Error",
+        description: "Something went wrong",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div
+      className={
+        "relative cardWrapper h-28 min-w-[180px] cursor-pointer md:h-36 md:min-w-[260px] transform transition duration-500 hover:scale-110 hover:z-[999]"
+      }
+    >
+      <CustomImage
+        image={`${process.env.NEXT_PUBLIC_TMDB_IMAGE_BASE_URL}${
+          movie?.backdrop_path || movie?.poster_path
+        }`}
+        className={"rounded sm object-cover md:rounded hover:rounded-sm"}
+        alt={"Image"}
+        onClick={onHandlerPopup}
+      />
+      <div className={"space-x-3 hidden absolute p-2 bottom-0 buttonWrapper"}>
+        <button
+          className={`cursor-pointer border flex p-2 items-center gap-x-2 rounded-full  text-sm font-semibold transition hover:opacity-90 border-white bg-black opacity-75 text-black`}
+        >
+          {isLoading ? (
+            <Loader2 className={"h-7 w-7 animate-spin text-red-600"} />
+          ) : favouriteId?.length ? (
+            <MinusIcon color="#ffffff" className="h-7 w-7" onClick={onRemove} />
+          ) : (
+            <PlusIcon color="#ffffff" className="h-7 w-7" onClick={onAdd} />
+          )}
+        </button>
+        <button className="cursor-pointer p-2 border flex items-center gap-x-2 rounded-full  text-sm font-semibold transition hover:opacity-90  border-white  bg-black opacity-75 ">
+          <ChevronDown
+            color="#fff"
+            className="h-7 w-7"
+            onClick={onHandlerPopup}
+          />
+        </button>
       </div>
-    </motion.div>
+    </div>
   );
 };
 

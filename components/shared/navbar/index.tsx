@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/popover";
 import { menuItems } from "@/constants";
 import { useGlobalContext } from "@/context";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { AiOutlineSearch } from "react-icons/ai";
@@ -15,15 +15,41 @@ import SearchBar from "./search-bar";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import MoviePopup from "../movie/movie-popup";
+import axios from "axios";
+import { AccountProps, AccountResponse } from "@/types";
+import { toast } from "@/components/ui/use-toast";
+import { Loader2 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Navbar = () => {
   const [showSearchBar, setShowSearchBar] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [accounts, setAccounts] = useState<AccountProps[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const { account, setAccount, setPageLoader } = useGlobalContext();
+  const { data: session }: any = useSession();
   const router = useRouter();
 
   useEffect(() => {
+    const getAllAccounts = async () => {
+      setIsLoading(true);
+      try {
+        const { data } = await axios.get<AccountResponse>(
+          `/api/account?uid=${session.user.uid}`
+        );
+        data.success && setAccounts(data.data as AccountProps[]);
+      } catch (error) {
+        return toast({
+          title: "Error",
+          description: "An error accurred while creating your account",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     const handleScroll = () => {
       if (window.scrollY > 100) {
         setIsScrolled(true);
@@ -31,6 +57,8 @@ const Navbar = () => {
         setIsScrolled(false);
       }
     };
+
+    getAllAccounts();
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -103,7 +131,7 @@ const Navbar = () => {
               </div>
             </PopoverTrigger>
             <PopoverContent>
-              {/* {isLoading ? (
+              {isLoading ? (
                 <div className={"flex flex-col space-y-4"}>
                   {[1, 2].map((_, i) => (
                     <Skeleton className={"w-full h-14"} />
@@ -130,7 +158,7 @@ const Navbar = () => {
                     <p>{account.name}</p>
                   </div>
                 ))
-              )} */}
+              )}
 
               <button
                 onClick={logout}
